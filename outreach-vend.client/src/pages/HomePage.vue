@@ -1,44 +1,49 @@
 <template>
-  <div class="home flex-grow-1 d-flex flex-column align-items-center justify-content-center">
-    <div class="home-card p-5 bg-white rounded elevation-3">
-      <img
-        src="https://bcw.blob.core.windows.net/public/img/8600856373152463"
-        alt="CodeWorks Logo"
-        class="rounded-circle"
-      >
-      <h1 class="my-5 bg-dark text-white p-3 rounded text-center">
-        Vue 3 Starter
-      </h1>
+  <VendingMachine :vend="vend">
+    <div v-for="p in products">
+      <button class="btn btn-primary px-5 m-2" :key="p.id" @click="purchaseProduct(p)">
+        <p>{{ p.name }}</p>
+        <p>${{ p.price }}</p>
+        <p>x{{ p.quantity }}</p>
+      </button>
     </div>
-  </div>
+  </VendingMachine>
 </template>
 
 <script>
+import { onMounted, computed } from "vue";
+import { AppState } from "../AppState.js";
+import VendingMachine from "../components/VendingMachine.vue";
+import { vendingMachineService } from "../services/VendingMachineService.js";
+import { productsService } from "../services/ProductsService.js";
+
 export default {
   setup() {
-    return {}
-  }
+    async function getVendingMachine() {
+      try {
+        await vendingMachineService.getVendingMachine();
+      }
+      catch (error) {
+        console.error("[ERROR RETRIEVING VENDING MACHINE]", error);
+      }
+    }
+    onMounted(() => {
+      getVendingMachine();
+    });
+    return {
+      vend: computed(() => AppState.vendingMachine),
+      products: computed(() => AppState.products),
+      async purchaseProduct(productData) {
+        try {
+          await productsService.purchaseProduct(productData)
+        } catch (error) {
+          console.error('[ERROR PURCHASING PRODUCT]', error)
+        }
+      }
+    };
+  },
+  components: { VendingMachine }
 }
 </script>
 
-<style scoped lang="scss">
-.home {
-  display: grid;
-  height: 80vh;
-  place-content: center;
-  text-align: center;
-  user-select: none;
-
-  .home-card {
-    width: 50vw;
-
-    >img {
-      height: 200px;
-      max-width: 200px;
-      width: 100%;
-      object-fit: contain;
-      object-position: center;
-    }
-  }
-}
-</style>
+<style scoped lang="scss"></style>
